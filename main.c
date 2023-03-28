@@ -3,11 +3,11 @@
 #include <time.h>
 #include <stdbool.h>
 
-#define TAM 15
+#define TAM 10
 #define MIN 0
 #define MAX 100
 
-int n_trocas = 0;
+int n_escritas = 0;
 int n_comps = 0;
 
 /**Funções auxiliares*/
@@ -32,7 +32,7 @@ bool comp(int a, int b) {
 }
 
 void troca(int* a, int* b) {
-    n_trocas++;
+    n_escritas+= 2;
     int aux = *a;
     *a = *b;
     *b = aux;
@@ -52,12 +52,26 @@ void bubble_sort(int vet[TAM]) {
     }
 }
 
+void insertion_sort(int vet[TAM]) {
+    for(int i=1;i<TAM;i++) {
+        int aux = vet[i];
+        int j;
+        for(j=i-1; j>=0 && comp(vet[j], aux); j--) {
+            vet[j+1] = vet[j];
+            n_escritas++;
+        }
+        vet[j+1] = aux;
+        n_escritas++;
+    }
+}
+
 int main() {
     srand(time(NULL));
     int vet[TAM];
     fill(vet);
     print(vet);
 
-    bubble_sort(vet);
+    insertion_sort(vet);
     print(vet);
+    printf("Escritas: %d, Comparações: %d\n", n_escritas, n_comps);
 }
