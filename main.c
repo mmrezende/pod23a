@@ -7,8 +7,13 @@
 #define MIN 0
 #define MAX 100
 
-int n_escritas = 0;
-int n_comps = 0;
+bool ordenado(int vet[TAM]) {
+    for(int i=0; i<TAM-1; i++) {
+        if(vet[i] > vet[i+1]) return false;
+    }
+
+    return true;
+}
 
 /**Funções auxiliares*/
 int fill(int vet[TAM]) {
@@ -24,18 +29,7 @@ void print(int vet[TAM]) {
         if(c != TAM - 1) printf(", ");
     }
     printf("}\n");
-}
-
-bool comp(int a, int b) {
-    n_comps++;
-    return a>b;
-}
-
-void troca(int* a, int* b) {
-    n_escritas+= 2;
-    int aux = *a;
-    *a = *b;
-    *b = aux;
+    printf(ordenado(vet) ? "ordenado!\n": "não está ordenado!\n");
 }
 
 /**Algoritmos de ordenação*/
@@ -43,8 +37,10 @@ void bubble_sort(int vet[TAM]) {
     for(int i=0; i<TAM; i++) {
         int trocas_it = 0;
         for(int j=0; j<(TAM-1-i); j++) {
-            if(comp(vet[j], vet[j+1])) {
-                troca(vet+j, vet+j+1);
+            if(vet[j] > vet[j+1]) {
+                int aux = vet[j];
+                vet[j] = vet[j+1];
+                vet[j+1] = aux;
                 trocas_it++;
             }
         }
@@ -56,12 +52,26 @@ void insertion_sort(int vet[TAM]) {
     for(int i=1;i<TAM;i++) {
         int aux = vet[i];
         int j;
-        for(j=i-1; j>=0 && comp(vet[j], aux); j--) {
+        for(j=i-1; j>=0 && vet[j] > aux; j--) {
             vet[j+1] = vet[j];
-            n_escritas++;
         }
         vet[j+1] = aux;
-        n_escritas++;
+    }
+}
+
+void shell_sort(int vet[TAM]) {
+    for(int intervalo=(TAM + 1)/2; intervalo >=1; intervalo/=2) {
+        for(int i=intervalo; i<TAM; i++) {
+            int aux = vet[i];
+            int j = i-intervalo;
+
+            while(j>=0 && aux < vet[j]) {
+                vet[j + intervalo] = vet[j];
+                j -= intervalo;
+            }
+            
+            vet[j+intervalo] = aux;
+        }
     }
 }
 
@@ -71,7 +81,8 @@ int main() {
     fill(vet);
     print(vet);
 
-    insertion_sort(vet);
+    // bubble_sort(vet);
+    // insertion_sort(vet);
+    shell_sort(vet);
     print(vet);
-    printf("Escritas: %d, Comparações: %d\n", n_escritas, n_comps);
 }
