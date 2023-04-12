@@ -115,18 +115,15 @@ void quick_sort(int vet[], size_t start, size_t end) {
     printf("[Pivot %d, i %d, j %d] ", pivot, i, j);
     print(vet);
 
-    quick_sort(vet, start, i-1);
-    quick_sort(vet, i+1, end);
+    if(i>start){
+        printf("\t");
+        quick_sort(vet, start, i-1);
+    }
 
-    // if(i>start){
-    //     printf("\t");
-    //     quick_sort(vet, start, i-1);
-    // }
-
-    // if(i<end){
-    //     printf("\t");
-    //     quick_sort(vet, i+1, end);
-    // }
+    if(i<end){
+        printf("\t");
+        quick_sort(vet, i+1, end);
+    }
 }
 
 int main() {
