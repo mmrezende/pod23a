@@ -16,9 +16,31 @@ bool ordenado(int vet[TAM]) {
 }
 
 /**Funções auxiliares*/
+int get_rand() {
+    return (MIN + rand()) % (MAX - MIN + 1);
+}
+
+bool in_array(int vet[], size_t size, int value) {
+    for(int c=0; c<size; c++) {
+        if(vet[c] == value) return true;
+    }
+
+    return false;
+}
+
 int fill(int vet[TAM]) {
     for(int c=0; c<TAM; c++) {
-        vet[c] = (MIN + rand()) % (MAX - MIN + 1);
+        vet[c] = get_rand();
+    }
+}
+
+int fill_unique(int vet[TAM]) {
+    for(int c=0; c<TAM; c++) {
+        int value;
+        do {
+            value = get_rand();
+        } while(in_array(vet, c, value));
+        vet[c] = value;
     }
 }
 
@@ -29,7 +51,6 @@ void print(int vet[TAM]) {
         if(c != TAM - 1) printf(", ");
     }
     printf("}\n");
-    printf(ordenado(vet) ? "ordenado!\n": "não está ordenado!\n");
 }
 
 /**Algoritmos de ordenação*/
@@ -75,14 +96,53 @@ void shell_sort(int vet[TAM]) {
     }
 }
 
+void quick_sort(int vet[], size_t start, size_t end) {
+    if(start >= end || start < 0 || end < 0 ) return;
+    printf("\nstart %d, end %d\n", start, end);
+
+    int pivot = vet[start];
+    int i = start, j = end;
+    do {
+        while(vet[i] < pivot) i++;
+        while(vet[j] > pivot) j--;
+
+        if(i<=j) {
+            int aux = vet[i];
+            vet[i] = vet[j];
+            vet[j] = aux;
+        }
+    } while(i<j);
+    printf("[Pivot %d, i %d, j %d] ", pivot, i, j);
+    print(vet);
+
+    quick_sort(vet, start, i-1);
+    quick_sort(vet, i+1, end);
+
+    // if(i>start){
+    //     printf("\t");
+    //     quick_sort(vet, start, i-1);
+    // }
+
+    // if(i<end){
+    //     printf("\t");
+    //     quick_sort(vet, i+1, end);
+    // }
+}
+
 int main() {
     srand(time(NULL));
     int vet[TAM];
-    fill(vet);
+
+    // fill(vet);
+    fill_unique(vet);
+
     print(vet);
 
     // bubble_sort(vet);
     // insertion_sort(vet);
-    shell_sort(vet);
+    // shell_sort(vet);
+    quick_sort(vet, 0, TAM-1);
+
     print(vet);
+    printf(ordenado(vet) ? "ordenado!\n": "não está ordenado!\n");
 }
