@@ -133,7 +133,7 @@ bool no_remove(no_t* self, dado_t dado) {
 }
 
 void no_imprime(no_t* self, int nivel) {
-    printf("%d\n", self->dado);
+    printf("%d(%c)\n", self->dado, self->isBlack ? 'B' : 'V');
     
     for (int i = 0; i < nivel; i++) printf("\t");
     printf("dir: ");
