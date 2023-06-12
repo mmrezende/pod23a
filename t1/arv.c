@@ -47,6 +47,13 @@ no_t* no_rotaciona_esquerda(no_t* self) {
     no_t* aux = self->dir;
     
     aux->pai = self->pai;
+    if(aux->pai != NULL) {
+        if(aux->pai->dir == self) {
+            aux->pai->dir = aux;
+        }else {
+            aux->pai->esq = aux;
+        }
+    }
     self->pai = aux;
     self->dir = aux->esq;
     aux->esq = self;
@@ -57,7 +64,15 @@ no_t* no_rotaciona_esquerda(no_t* self) {
 
 no_t* no_rotaciona_direita(no_t* self) {
     no_t* aux = self->esq;
+
     aux->pai = self->pai;
+    if(aux->pai != NULL) {
+        if(aux->pai->dir == self) {
+            aux->pai->dir = aux;
+        }else {
+            aux->pai->esq = aux;
+        }
+    }
     self->pai = aux;
     self->esq = aux->dir;
     aux->dir = self;
@@ -133,7 +148,7 @@ no_t* no_insere(no_t* self, dado_t dado) {
     return self;
 }
 
-bool no_remove(no_t* self, dado_t dado) {
+bool no_remove(no_t* self, dado_t dado) { // TODO
     return false;
 }
 
