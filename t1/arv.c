@@ -9,8 +9,10 @@ typedef struct no no_t;
 
 struct no {
     dado_t dado;
+    no_t *pai;
     no_t *esq;
     no_t *dir;
+    bool isBlack;
 };
 
 struct arv {
@@ -24,6 +26,7 @@ struct arv {
 no_t* no_cria(dado_t dado) {
     no_t* self = calloc(1, sizeof(no_t));
     self->dado = dado;
+    self->isBlack = false;
     return self;
 }
 
@@ -46,15 +49,83 @@ bool no_busca(no_t* self, dado_t dado) {
     return no_busca(self->dir, dado);
 }
 
-void no_insere(no_t* self, dado_t dado) {
-    if(self->dado == dado) return; // nó já está na árvore
+no_t* no_rotaciona_esquerda(no_t* self) {
+    no_t* aux = self->esq;
+    self->esq = aux->dir;
+    aux->dir = self;
 
-    if(no_cmp(self, dado))
-        if(self->esq == NULL) self->esq = no_cria(dado);
-        else no_insere(self->esq, dado);
-    else
-        if(self->dir == NULL) self->dir = no_cria(dado);
-        else no_insere(self->dir, dado);
+    return aux;
+}
+
+no_t* no_rotaciona_direita(no_t* self) {
+    no_t* aux = self->dir;
+    self->dir = aux->esq;
+    aux->esq = self;
+
+    return aux;
+}
+
+no_t* no_corrige_regras(no_t* self) {
+    if(self->pai == NULL) {
+        self->isBlack = true; // nó raiz sempre é preto
+        return self;
+    }
+
+    no_t* pai = self->pai;
+    no_t* avo = pai->pai;
+
+    if(avo == NULL) return self; // nada a fazer
+
+    no_t* tio = avo->esq == pai ? avo->dir : avo->esq;
+
+    if(tio != NULL && !tio->isBlack) { // tio é vermelho, muda a cor do pai, tio e avô
+        pai->isBlack ^= true;
+        tio->isBlack ^= true;
+        avo->isBlack ^= true;
+        return no_corrige_regras(avo);
+    }
+
+    if(avo->esq == pai) {
+        if(pai->dir == self) { // caso triângulo (à esquerda)
+            no_rotaciona_esquerda(pai);
+        } else { // caso linha (à esquerda)
+            pai->isBlack ^= true;
+            avo->isBlack ^= true;
+            no_rotaciona_direita(avo);
+        }
+    }else {
+        if(pai->esq == self) { // caso triângulo (à direita)
+            no_rotaciona_direita(pai);
+        } else { // caso linha (à direita)
+            pai->isBlack ^= true;
+            avo->isBlack ^= true;
+            no_rotaciona_esquerda(avo);
+        }
+    }
+
+    if(pai->dir == self) {
+        no_rotaciona_esquerda(pai);
+        self = self->esq;
+    }
+}
+
+no_t* no_insere(no_t* self, dado_t dado) {
+    if(self == NULL) return no_cria(dado);
+
+    if(self->dado == dado) return self; // nó já está na árvore
+
+    no_t* novo_no;
+    if(no_cmp(self, dado)) {
+        novo_no = no_insere(self->esq, dado);
+        self->esq = novo_no;
+        novo_no->pai = self;
+    }else {
+        novo_no =  no_insere(self->esq, dado);
+        self->esq = novo_no;
+        novo_no->pai = self;
+    }
+
+    return no_corrige_regras(novo_no);
 }
 
 bool no_remove(no_t* self, dado_t dado) {
@@ -93,9 +164,7 @@ bool arv_busca(arv_t* self, dado_t dado) {
 }
 
 void arv_insere(arv_t* self, dado_t dado) {
-    if(self->raiz == NULL) self->raiz = no_cria(dado);
-
-    no_insere(self->raiz, dado);
+    self->raiz = no_insere(self->raiz, dado);
 }
 
 bool arv_remove(arv_t* self, dado_t dado) {
