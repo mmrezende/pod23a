@@ -105,15 +105,12 @@ no_t* no_corrige_regras(no_t* self) {
         }
     }
 
-    if(pai->dir == self) {
-        no_rotaciona_esquerda(pai);
-        self = self->esq;
-    }
+    return no_corrige_regras(pai); // o nó que viola a regra será sempre o pai original
 }
 
 // Insere o nó, retornando a nova raiz da árvore.
 no_t* no_insere(no_t* self, dado_t dado) {
-    if(self == NULL) return no_cria(dado);
+    if(self == NULL) return no_corrige_regras(no_cria(dado));
 
     if(self->dado == dado) return self; // nó já está na árvore
 
