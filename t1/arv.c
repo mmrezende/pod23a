@@ -51,17 +51,18 @@ no_t* no_rotaciona_esquerda(no_t* self) {
     self->pai = aux;
     self->dir = aux->esq;
     aux->esq = self;
-    if(self->dir != NULL) {
-        self->dir->pai = self;
-    }
+    if(self->dir != NULL) self->dir->pai = self;
 
     return aux;
 }
 
 no_t* no_rotaciona_direita(no_t* self) {
-    no_t* aux = self->dir;
-    self->dir = aux->esq;
-    aux->esq = self;
+    no_t* aux = self->esq;
+    aux->pai = self->pai;
+    self->pai = aux;
+    self->esq = aux->dir;
+    aux->dir = self;
+    if(self->esq != NULL) self->esq->pai = self;
 
     return aux;
 }
