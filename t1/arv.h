@@ -7,6 +7,9 @@
 
 typedef struct arv arv_t; // Struct opaca do TAD
 typedef int dado_t; // Tipo do dado armazenado nos nós da árvore
+bool dado_cmp(dado_t d1, dado_t d2) { // define a ordem dos dados a serem inseridos
+    return d1 < d2;
+}
 
 arv_t* arv_cria();
 void arv_destroi(arv_t* self);

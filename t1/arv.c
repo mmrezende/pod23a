@@ -36,16 +36,11 @@ void no_destroi(no_t* self) {
     free(self);
 }
 
-// verdadeiro se o dado deve estar à esquerda do nó atual
-bool no_cmp(no_t* self, dado_t dado) {
-    return (dado < self->dado);
-}
-
 bool no_busca(no_t* self, dado_t dado) {
     if(self == NULL) return false;
 
     if(self->dado == dado) return true;
-    if(no_cmp(self, dado)) return no_busca(self->esq, dado);
+    if(dado_cmp(self->dado, dado)) return no_busca(self->esq, dado);
     return no_busca(self->dir, dado);
 }
 
@@ -115,7 +110,7 @@ no_t* no_insere(no_t* self, dado_t dado) {
     if(self->dado == dado) return self; // nó já está na árvore
 
     no_t* novo_no;
-    if(no_cmp(self, dado)) {
+    if(dado_cmp(self->dado, dado)) {
         novo_no = no_insere(self->esq, dado);
         self->esq = novo_no;
         novo_no->pai = self;
