@@ -45,9 +45,15 @@ bool no_busca(no_t* self, dado_t dado) {
 }
 
 no_t* no_rotaciona_esquerda(no_t* self) {
-    no_t* aux = self->esq;
-    self->esq = aux->dir;
-    aux->dir = self;
+    no_t* aux = self->dir;
+    
+    aux->pai = self->pai;
+    self->pai = aux;
+    self->dir = aux->esq;
+    aux->esq = self;
+    if(self->dir != NULL) {
+        self->dir->pai = self;
+    }
 
     return aux;
 }
@@ -104,6 +110,7 @@ no_t* no_corrige_regras(no_t* self) {
     }
 }
 
+// Insere o nó, retornando a nova raiz da árvore.
 no_t* no_insere(no_t* self, dado_t dado) {
     if(self == NULL) return no_cria(dado);
 
