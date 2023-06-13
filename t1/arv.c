@@ -81,8 +81,8 @@ no_t* no_rotaciona_direita(no_t* self) {
     return aux;
 }
 
-// corrige as regras da Árvore Red Black, retornando a nova raiz
-no_t* no_corrige_regras(no_t* self) {
+// corrige as regras na insersão da Árvore Red Black, retornando a nova raiz
+no_t* no_corrige_insercao(no_t* self) {
     if(self->pai == NULL) {
         self->isBlack = true; // nó raiz sempre é preto
         return self;
@@ -102,7 +102,7 @@ no_t* no_corrige_regras(no_t* self) {
         pai->isBlack ^= true;
         tio->isBlack ^= true;
         avo->isBlack ^= true;
-        return no_corrige_regras(avo);
+        return no_corrige_insercao(avo);
     }
 
     if(avo->esq == pai) {
@@ -123,7 +123,7 @@ no_t* no_corrige_regras(no_t* self) {
         }
     }
 
-    return no_corrige_regras(pai); // o nó que viola a regra será sempre o pai original
+    return no_corrige_insercao(pai); // o nó que viola a regra será sempre o pai original
 }
 
 // Insere o nó, retornando um ponteiro para o mesmo
@@ -148,8 +148,116 @@ no_t* no_insere(no_t* self, dado_t dado) {
     return self;
 }
 
-bool no_remove(no_t* self, dado_t dado) { // TODO
-    return false;
+void no_transplanta(no_t* u, no_t* v, no_t** raiz) {
+    if(v != NULL) v->pai = u->pai;
+    if(u->pai == NULL) *raiz = v;
+    else if (u == u->pai->esq) u->pai->esq = v;
+    else u->pai->dir = v;
+}
+
+no_t* no_minimo(no_t* self) {
+    while(self->esq != NULL) self = self->esq;
+
+    return self;
+}
+
+void no_corrige_remocao(no_t* self) {
+    if(self == NULL) return;
+
+    while(self->pai != NULL && self->isBlack) {
+        no_t* irmao;
+        if(self == self->pai->esq) {
+            irmao = self->pai->dir;
+            if(irmao != NULL && !irmao->isBlack) {
+                irmao->isBlack = true;
+                self->pai->isBlack = false;
+                no_rotaciona_esquerda(self->pai);
+                irmao = self->pai->dir;
+            }
+
+            if((irmao->esq == NULL || irmao->esq->isBlack) && (irmao->dir == NULL || irmao->dir->isBlack)) {
+                irmao->isBlack = false;
+                self = self->pai;
+            }else {
+                if (irmao->dir == NULL || irmao->dir->isBlack) {
+                    if(irmao->esq != NULL) irmao->esq->isBlack = true;
+                    irmao->isBlack = false;
+                    no_rotaciona_direita(irmao);
+                    irmao = self->pai->dir;
+                }
+
+                irmao->isBlack = self->pai == NULL || self->pai->isBlack;
+                if(self->pai != NULL) self->pai->isBlack = true;
+                if(irmao->dir != NULL) irmao->dir->isBlack = true;
+                if(self->pai != NULL) no_rotaciona_esquerda(self->pai);
+
+                while(self->pai != NULL) self = self->pai;
+            }
+        }else {
+            irmao = self->pai->esq;
+            if(irmao != NULL && !irmao->isBlack) {
+                irmao->isBlack = true;
+                self->pai->isBlack = false;
+                no_rotaciona_direita(self->pai);
+                irmao = self->pai->esq;
+            }
+
+            if((irmao->dir == NULL || irmao->dir->isBlack) && (irmao->esq == NULL || irmao->esq->isBlack)) {
+                irmao->isBlack = false;
+                self = self->pai;
+            }else {
+                if (irmao->esq == NULL || irmao->esq->isBlack) {
+                    if(irmao->dir != NULL) irmao->dir->isBlack = true;
+                    irmao->isBlack = false;
+                    no_rotaciona_esquerda(irmao);
+                    irmao = self->pai->esq;
+                }
+
+                irmao->isBlack = self->pai == NULL || self->pai->isBlack;
+                if(self->pai != NULL) self->pai->isBlack = true;
+                if(irmao->esq != NULL) irmao->esq->isBlack = true;
+                if(self->pai != NULL) no_rotaciona_direita(self->pai);
+
+                while(self->pai != NULL) self = self->pai;
+            }
+        }
+    }
+
+    self->isBlack = true;
+}
+
+void no_remove(no_t* vitima, no_t** raiz) {
+    bool wasBlack = vitima->isBlack;
+
+    no_t* critico;
+    if(vitima->esq == NULL) {
+        critico = vitima->dir;
+        no_transplanta(vitima, vitima->dir, raiz);
+    } else if(vitima->dir == NULL) {
+        critico = vitima->esq;
+        no_transplanta(vitima, vitima->esq, raiz);
+    } else {
+        no_t* minimo_dir = no_minimo(vitima->dir);
+        wasBlack = minimo_dir->isBlack;
+        critico = minimo_dir->dir;
+        
+        if(minimo_dir->pai == vitima) {
+            if(critico != NULL) critico->pai = minimo_dir;
+        }else {
+            no_transplanta(minimo_dir, critico, raiz);
+            minimo_dir->dir = vitima->dir;
+            minimo_dir->dir->pai = minimo_dir;
+        }
+
+        no_transplanta(vitima, minimo_dir, raiz);
+        minimo_dir->esq = vitima->esq;
+        minimo_dir->esq->pai = minimo_dir;
+        minimo_dir->isBlack = vitima->isBlack;
+    }
+
+    if(wasBlack) no_corrige_remocao(critico);
+
+    no_destroi(vitima);
 }
 
 void no_imprime(no_t* self, int nivel) {
@@ -187,13 +295,15 @@ void arv_insere(arv_t* self, dado_t dado) {
     self->raiz = no_insere(self->raiz, dado);
     no_t* novo_no = no_busca(self->raiz,dado);
 
-    self->raiz = no_corrige_regras(novo_no);
+    self->raiz = no_corrige_insercao(novo_no);
 }
 
 bool arv_remove(arv_t* self, dado_t dado) {
-    if(self->raiz == NULL) return false;
+    no_t* vitima = no_busca(self->raiz, dado);
+    if(vitima == NULL) return false;
 
-    return no_remove(self->raiz, dado);
+    no_remove(vitima, &self->raiz);
+    return true;
 }
 
 void arv_imprime(arv_t* self) {

@@ -11,7 +11,7 @@ int main() {
     
     
     arv_imprime(arv);
-    arv_insere(arv, 10);
+    arv_remove(arv, 19);
     arv_imprime(arv);
     
     return EXIT_SUCCESS;
