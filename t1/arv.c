@@ -13,6 +13,7 @@ struct no {
     no_t *esq;
     no_t *dir;
     bool isBlack;
+    bool isNil;
 };
 
 struct arv {
@@ -27,6 +28,7 @@ no_t* no_cria(dado_t dado) {
     no_t* self = calloc(1, sizeof(no_t));
     self->dado = dado;
     self->isBlack = false;
+    self->isNil = false;
     return self;
 }
 
@@ -149,10 +151,11 @@ no_t* no_insere(no_t* self, dado_t dado) {
 }
 
 void no_transplanta(no_t* u, no_t* v, no_t** raiz) {
-    if(v != NULL) v->pai = u->pai;
     if(u->pai == NULL) *raiz = v;
     else if (u == u->pai->esq) u->pai->esq = v;
     else u->pai->dir = v;
+
+    if(v != NULL) v->pai = u->pai;
 }
 
 no_t* no_minimo(no_t* self) {
@@ -162,7 +165,6 @@ no_t* no_minimo(no_t* self) {
 }
 
 void no_corrige_remocao(no_t* self) {
-    if(self == NULL) return;
 
     while(self->pai != NULL && self->isBlack) {
         no_t* irmao;
@@ -226,23 +228,35 @@ void no_corrige_remocao(no_t* self) {
     self->isBlack = true;
 }
 
+no_t* no_cria_nil() {
+    no_t* self = no_cria(0);
+    self->dir = NULL;
+    self->esq = NULL;
+    self->isBlack = true;
+    self->isNil = true;
+    return self;
+}
+
 void no_remove(no_t* vitima, no_t** raiz) {
     bool wasBlack = vitima->isBlack;
 
     no_t* critico;
     if(vitima->esq == NULL) {
         critico = vitima->dir;
-        no_transplanta(vitima, vitima->dir, raiz);
+        if(critico == NULL) critico = no_cria_nil();
+        no_transplanta(vitima, critico, raiz);
     } else if(vitima->dir == NULL) {
         critico = vitima->esq;
-        no_transplanta(vitima, vitima->esq, raiz);
+        if(critico == NULL) critico = no_cria_nil();
+        no_transplanta(vitima, critico, raiz);
     } else {
         no_t* minimo_dir = no_minimo(vitima->dir);
         wasBlack = minimo_dir->isBlack;
         critico = minimo_dir->dir;
+        if(critico == NULL) critico = no_cria_nil();
         
         if(minimo_dir->pai == vitima) {
-            if(critico != NULL) critico->pai = minimo_dir;
+            critico->pai = minimo_dir;
         }else {
             no_transplanta(minimo_dir, critico, raiz);
             minimo_dir->dir = vitima->dir;
@@ -257,7 +271,21 @@ void no_remove(no_t* vitima, no_t** raiz) {
 
     if(wasBlack) no_corrige_remocao(critico);
 
+    vitima->dir = NULL;
+    vitima->esq = NULL;
     no_destroi(vitima);
+    if(critico->isNil) {
+        critico->dir = NULL;
+        critico->esq = NULL;
+        if(critico->pai != NULL) {
+            if(critico->pai->esq == critico) {
+                critico->pai->esq = NULL;
+            }else {
+                critico->pai->dir = NULL;
+            }
+        }
+        no_destroi(critico);
+    }
 }
 
 void no_imprime(no_t* self, int nivel) {
